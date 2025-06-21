@@ -32,12 +32,55 @@
       list-style: none;
     }
     #list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 0.75rem 1rem;
       margin-bottom: 0.75rem;
       background: #fafafa;
       border: 1px solid #e1e4e8;
       border-radius: 6px;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    #list li:hover {
+      background: #f5f5f5;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    /* strike-through & dim completed tasks */
+    #list li.done .task-text {
+      text-decoration: line-through;
+      color: #888;
+    }
+    #list li.done {
+      opacity: 0.7;
+    }
+
+    .task-text {
+      flex: 1;
+      margin-right: 1rem;
+      word-break: break-word;
       font-size: 1rem;
+    }
+
+    /* ---------- buttons ---------- */
+    button {
+      border: none;
+      border-radius: 4px;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button:hover { opacity: 0.85; }
+
+    .done-btn {
+      background: #28a745;
+      color: white;
+    }
+    .delete-btn {
+      background: #dc3545;
+      color: white;
+      margin-left: 0.5rem;
     }
 
     /* ---------- add form ---------- */
@@ -55,14 +98,8 @@
     #add-btn {
       background: #007bff;
       color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 0.4rem 0.8rem;
       margin-left: 0.5rem;
-      cursor: pointer;
-      transition: opacity 0.2s;
     }
-    #add-btn:hover { opacity: 0.85; }
   </style>
 </head>
 <body>
@@ -86,7 +123,28 @@
 
       tasks.forEach(t => {
         const li = document.createElement('li');
-        li.textContent = t.title;
+        if (t.done) li.classList.add('done');
+
+        // use emojis for status
+        const status = t.done ? '✅' : '⬜';
+        const span = document.createElement('span');
+        span.className = 'task-text';
+        span.textContent = `${status} ${t.title}`;
+        li.appendChild(span);
+
+        const doneBtn = document.createElement('button');
+        doneBtn.textContent = 'Done';
+        doneBtn.className = 'done-btn';
+        doneBtn.disabled = t.done;
+        doneBtn.onclick = () => completeTask(t.id, t.title);
+        li.appendChild(doneBtn);
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Delete';
+        delBtn.className = 'delete-btn';
+        delBtn.onclick = () => deleteTask(t.id);
+        li.appendChild(delBtn);
+
         ul.appendChild(li);
       });
     }
@@ -101,6 +159,20 @@
         body: JSON.stringify({ title: text })
       });
       input.value = '';
+      load();
+    }
+
+    async function completeTask(id, title) {
+      await fetch(`/todos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, done: true })
+      });
+      load();
+    }
+
+    async function deleteTask(id) {
+      await fetch(`/todos/${id}`, { method: 'DELETE' });
       load();
     }
 
