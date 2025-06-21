@@ -1,0 +1,13 @@
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Build directories
+build/
+
+# Dependency directories
+vendor/
